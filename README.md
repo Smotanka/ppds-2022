@@ -1,6 +1,7 @@
 ## 1. Assignment - Getting to know the environment 
 _Whole assignment (in slovak) can be found on this [link](https://uim.fei.stuba.sk/i-ppds/1-cvicenie-oboznamenie-sa-s-prostredim-%f0%9f%90%8d/)._
 
+
 The goal of this task is to implement two threads that use one shared object. Within this shared object the treads increment
 index of array. If the value of index is beyond the size of the array, the function stops.
 ---
