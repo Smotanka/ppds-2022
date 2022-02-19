@@ -34,19 +34,13 @@ mutex = Mutex()
 
 # Counter function that increments the element in 'elms' attribute on index with of obj.counter
 def do_count(obj):
-    # 1. case of using lock
-    # mutex.lock()
     while obj.counter < obj.end:
-        # 2. case of using lock
-        mutex.lock()
         obj.elms[obj.counter] += 1
         # Putting to sleep one Thread,
         # because we want interpreter to switch to another Thread
         # Deeper explained at: https://www.youtube.com/watch?v=HNGZJ0MXSWI (01:00:00)
         sleep(randint(1, 10) / 1000)
         obj.counter += 1
-        mutex.unlock()
-    # mutex.unlock()
 
 
 # Creating single instance of class 'Shared' with size of 'size'
