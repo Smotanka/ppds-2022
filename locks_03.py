@@ -39,22 +39,26 @@ def do_count(obj):
         # Putting to sleep one Thread,
         # because we want interpreter to switch to another Thread
         # Deeper explained at: https://www.youtube.com/watch?v=HNGZJ0MXSWI (01:00:00)
-        sleep(randint(1, 10) / 1000)
+        # sleep(randint(1, 10) / 1000)
         obj.counter += 1
 
 
+def lock_thread(function, *args):
+    mutex.lock()
+    thread = Thread(function, *args)
+    mutex.unlock()
+    return thread.join()
+
+
 # Creating single instance of class 'Shared' with size of 'size'
-size = 1000
+size = 1000_000
 shared = Shared(size)
 
 # Assigning the 'Thread' index to t1 variable
 # First argument is function which will be called on specific thread
 # Other arguments are passed to function as first argument
-t1 = Thread(do_count, shared)
-t2 = Thread(do_count, shared)
-
-t1.join()
-t2.join()
+lock_thread(do_count, shared)
+lock_thread(do_count, shared)
 
 # Counter elms in 'Shared' class
 counter = Counter(shared.elms)
