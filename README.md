@@ -34,21 +34,21 @@ index of array. If the value of index is beyond the size of the array, the funct
 
 ---
 
-###Locks Implementation 
+### Locks Implementation 
 
 There are three different implementations of locks. You can find them in files: [locks_01](locks_01.py), [locks_02](locks_02.py) and [locks_03](locks_03.py).
 We wanted to show different options for implementing locks. Each implementation shows a different granularity on which we want to achieve the atomicity of the code.
 
-#####1. Lock the while loop
+##### 1. Lock the while loop
 First option was to put locks outside the while (we can find it in [locks_01](locks_01.py)). Index in the shared object 
 is incremented only by one thread. Mutex lock that is held by the thread does not allow the other thread to start the while.
 After the lock is unlocked, second thread checks the condition, which is no longer valid, so the second thread jumps to the instruction to unlock the lock.  
 
-#####2. Lock inside the while loop
+##### 2. Lock inside the while loop
 The second option ([locks_02](locks_02.py)) is the most granular. We lock the incrementation inside the while loop. There are adjustments in _do_count_
 function. This was made because, we need to lock the code before the thread reach the comparison. This is mainly due to 
 the reason that the code within the scope will be executed by multiple threads regardless of which holds the lock.
 
-#####3. Lock the whole thread
+##### 3. Lock the whole thread
 Last option ([locks_03](locks_03.py)) is the lock the whole thread. We created the wrapper function thats locks the thread and all the 
 function code in it. This option is least granural.
