@@ -64,3 +64,42 @@ if obj.counter < obj.end: # condition is valid for both threads
 ##### 3. Lock the whole thread
 Last option ([locks_03](locks_03.py)) is the lock the whole thread. We created the wrapper function thats locks the thread and all the 
 function code in it. This option is least granural.
+
+---
+### Python versions 3.08 and 3.10
+Code execution in Python version 3.10 differs from version 3.0. These differences are small but noticeable.
+
+Let's look at the following code (from [locks_01](locks_01.py)):
+
+```python
+   # Python v3.08
+    def do_count(obj):
+       while obj.counter < obj.end: # obj.end = 1_000_000
+           obj.elms[obj.counter] += 1
+           obj.counter += 1
+           
+    """ No error, Counter(shared.elms) prints [(1, 630996), (2, 336724), (3, 32277), (0, 3)] """
+```
+
+```python
+   # Python v3.10
+    def do_count(obj):
+       while obj.counter < obj.end: # obj.end = 1_000_000
+           obj.elms[obj.counter] += 1
+           obj.counter += 1
+    
+    """ IndexError: list index out of range, Counter(shared.elms) prints [(1, 1000000)] """
+```
+As we can see, the same code executed in two threads have different result. Ultimately, 
+the result of the execution is affected not only by the structure and design of the code but also by the interpreter version.
+We designed our lock implementation to work for both versions.
+
+**Important Note:** 
+
+The Python interpreter switches between threads, 
+but at any given time the interpreter runs within one thread, the one owned by **GIL** (_global interpreter lock_).[[1](#sources)]
+
+---
+Sources :
+   1. **Pecinovský** Rudolf: (czech) Python, kompletní příručka jazyka pro verzi 3.10,
+                              Grada Publishing, ISBN 978-80-271-3442-7 (print), page 574.
