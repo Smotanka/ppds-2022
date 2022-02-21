@@ -49,6 +49,18 @@ The second option ([locks_02](locks_02.py)) is the most granular. We lock the in
 function. This was made because, we need to lock the code before the thread reach the comparison. This is mainly due to 
 the reason that the code within the scope will be executed by multiple threads regardless of which holds the lock.
 
+**Example:**
+
+```python
+"""incorrect use of locks"""
+if obj.counter < obj.end: # condition is valid for both threads
+    mutex.lock() # thread one hold the lock, thread two is waiting for lock
+    obj.elms[obj.counter] += 1 # thread one increment the last element, 
+    # thread two try to increment element on index beyond the length of an array 
+    obj.counter += 1  # index is out range           
+    mutex.unlock()
+```
+
 ##### 3. Lock the whole thread
 Last option ([locks_03](locks_03.py)) is the lock the whole thread. We created the wrapper function thats locks the thread and all the 
 function code in it. This option is least granural.
