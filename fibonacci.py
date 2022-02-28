@@ -19,39 +19,76 @@ from threading import get_ident
 
 # TODO
 class SimpleBarrier:
-    def __init__(self, n_threads):
-        self.threads = n_threads
-        self.counter = 0
-        self.mutex = Mutex()
+    def __init__(self, n):
         self.semaphore = Event()
+        self.n_place = n
 
-    def wait(self):
-        self.mutex.lock()
-        self.counter += 1
-        if self.counter == self.threads:
-            self.counter = 0
-            self.semaphore.signal()
-        self.mutex.unlock()
-        self.semaphore.clear()
+    def thread_wait(self):
         self.semaphore.wait()
+
+    def signal(self):
         self.semaphore.signal()
 
+    def id(self):
+        return self.n_place
 
-def compute_fibonacci(i, barrier, barrier_2, mutex):
+
+class SharedCounter:
+    def __init__(self, n_threads):
+        self.counter = 0
+        self.thread_array = [] * n_threads
+
+    def add(self):
+        self.counter += 1
+
+    def print(self):
+        print(self.thread_array)
+
+    def sum(self):
+        return self.counter
+
+    def reset(self):
+        self.counter = 0
+
+    def append(self, barrier):
+        if barrier not in self.thread_array:
+            self.thread_array.append(barrier)
+
+    def sort(self):
+        return sorted(self.thread_array, key=lambda x: x.id())
+
+    def free_all(self):
+        mutex = Mutex()
+        sorted_array = self.sort()
+        for barrier in sorted_array:
+            mutex.lock()
+            barrier.signal()
+            mutex.unlock()
+        self.reset()
+
+
+def compute_fibonacci(i, counter, mutex):
+    bar = SimpleBarrier(i)
     sleep(randint(1, 10) / 10)
-    barrier.wait()
+    mutex.lock()
+    counter.add()
+    counter.append(bar)
+    mutex.unlock()
+    if counter.sum() < THREADS:
+        bar.thread_wait()
+    else:
+        counter.free_all()
     fib_seq[i + 2] = fib_seq[i] + fib_seq[i + 1]
-    barrier_2.wait()
 
 
 THREADS = 10
 fib_seq = [0] * (THREADS + 2)
 fib_seq[1] = 1
-
-bar = SimpleBarrier(THREADS)
-bar_2 = SimpleBarrier(THREADS)
+counter = SharedCounter(THREADS)
+count = []
 mtx = Mutex()
-threads = [Thread(compute_fibonacci, i, bar, bar_2, mtx) for i in range(THREADS)]
+threads = [Thread(compute_fibonacci, i, counter, mtx) for i in range(THREADS)]
+
 [t.join() for t in threads]
 
 print(fib_seq)
