@@ -12,35 +12,46 @@ from time import sleep
 from fei.ppds import Thread
 from fei.ppds import Semaphore
 from fei.ppds import Mutex
+from fei.ppds import Event
 from fei.ppds import print
 from threading import get_ident
 
 
+# TODO
 class SimpleBarrier:
     def __init__(self, n_threads):
         self.threads = n_threads
         self.counter = 0
         self.mutex = Mutex()
-        self.semaphore = Semaphore(0)
+        self.semaphore = Event()
 
     def wait(self):
         self.mutex.lock()
         self.counter += 1
         if self.counter == self.threads:
             self.counter = 0
-            self.semaphore.signal(self.threads)
+            self.semaphore.signal()
         self.mutex.unlock()
+        self.semaphore.clear()
         self.semaphore.wait()
+        self.semaphore.signal()
 
 
-def barrier_example(barrier, thread_id):
+def compute_fibonacci(i, barrier, barrier_2, mutex):
     sleep(randint(1, 10) / 10)
-    print("thread %d before barrier" % thread_id)
     barrier.wait()
-    print("thread %d after barrier" % thread_id)
+    fib_seq[i + 2] = fib_seq[i] + fib_seq[i + 1]
+    barrier_2.wait()
 
 
-THREADS = 5
-sb_1 = SimpleBarrier(THREADS)
-threads = [Thread(barrier_example, sb_1, i) for i in range(THREADS)]
+THREADS = 10
+fib_seq = [0] * (THREADS + 2)
+fib_seq[1] = 1
+
+bar = SimpleBarrier(THREADS)
+bar_2 = SimpleBarrier(THREADS)
+mtx = Mutex()
+threads = [Thread(compute_fibonacci, i, bar, bar_2, mtx) for i in range(THREADS)]
 [t.join() for t in threads]
+
+print(fib_seq)

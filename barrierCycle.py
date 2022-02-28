@@ -12,6 +12,7 @@ from time import sleep
 from fei.ppds import Thread
 from fei.ppds import Semaphore
 from fei.ppds import Mutex
+from fei.ppds import Event
 from fei.ppds import print
 from threading import get_ident
 
@@ -21,26 +22,40 @@ class SimpleBarrier:
         self.threads = n_threads
         self.counter = 0
         self.mutex = Mutex()
-        self.semaphore = Semaphore(0)
+        self.semaphore = Event()
 
     def wait(self):
         self.mutex.lock()
         self.counter += 1
         if self.counter == self.threads:
             self.counter = 0
-            self.semaphore.signal(self.threads)
+            self.semaphore.signal()
         self.mutex.unlock()
+        self.semaphore.clear()
         self.semaphore.wait()
+        self.semaphore.signal()
 
 
-def barrier_example(barrier, thread_id):
+def before_barrier(thread_id):
     sleep(randint(1, 10) / 10)
-    print("thread %d before barrier" % thread_id)
-    barrier.wait()
-    print("thread %d after barrier" % thread_id)
+    print(f"pred barierou {thread_id}")
+
+
+def after_barrier(thread_id):
+    print(f"za barierou {thread_id}")
+    sleep(randint(1, 10) / 10)
+
+
+def barrier_cycle(barrier_1, barrier_2, thread_id):
+    while True:
+        before_barrier(thread_id)
+        barrier_1.wait()
+        after_barrier(thread_id)
+        barrier_2.wait()
 
 
 THREADS = 5
 sb_1 = SimpleBarrier(THREADS)
-threads = [Thread(barrier_example, sb_1, i) for i in range(THREADS)]
+sb_2 = SimpleBarrier(THREADS)
+threads = [Thread(barrier_cycle, sb_1, sb_2, i) for i in range(THREADS)]
 [t.join() for t in threads]
