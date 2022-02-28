@@ -25,15 +25,16 @@ class SimpleBarrier:
         self.semaphore = Event()
 
     def wait(self):
+        self.semaphore.clear()
         self.mutex.lock()
         self.counter += 1
         if self.counter == self.threads:
             self.counter = 0
             self.semaphore.signal()
         self.mutex.unlock()
-        self.semaphore.clear()
-        self.semaphore.wait()
-        self.semaphore.signal()
+        sleep(randint(1, 10) / 10)
+        if self.counter < self.threads:
+            self.semaphore.wait()
 
 
 def before_barrier(thread_id):
