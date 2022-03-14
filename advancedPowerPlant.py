@@ -1,4 +1,20 @@
-from fei.ppds import Mutex, Semaphore, Thread, Event, print
+"""Authors: Mgr. Ing. Matúš Jókay, PhD.
+            Bc. Martin Smetanka
+University:  Slovak Technical University in Bratislava
+Faculty: Faculty of Electrical Engineering and Information Technology
+Semester: Spring/Summer
+Year: 2022
+License: MIT
+Assignment: https://uim.fei.stuba.sk/i-ppds/4-cvicenie-vecerajuci-filozofi-atomova-elektraren-%f0%9f%8d%bd%ef%b8%8f/"""
+
+# Python v3.10
+# Source: https://pypi.org/project/fei.ppds/
+from fei.ppds import Mutex
+from fei.ppds import Thread
+from fei.ppds import Semaphore
+from fei.ppds import Event
+from fei.ppds import print
+
 from time import sleep
 from random import randint
 from enum import Enum
@@ -19,7 +35,8 @@ class LightSwitch(object):
     def lock(self, sem):
         """
             Lock the all threads in 'semaphore' object
-                @param(sem) Object - Semaphore to lock
+                :param sem: Object - Semaphore to lock
+                :returns counter: int - Number of 'Semaphore' object that was by the lock method
         """
         self.mutex.lock()
         counter = self.cnt
@@ -32,7 +49,7 @@ class LightSwitch(object):
     def unlock(self, sem):
         """
             Unlock the threads in 'semaphore' object
-                @param(sem) Object - Semaphore to unlock
+                :param sem: Object - Semaphore to unlock
         """
         self.mutex.lock()
         self.cnt -= 1
@@ -42,12 +59,20 @@ class LightSwitch(object):
 
 
 class SensorType(Enum):
+    """
+
+    Enum class for the sensor types
+
+    """
     P = 1
     H = 2
     T = 3
 
 
 class PowerPlant:
+    """
+        Shared class that wraps the synchronization objects
+    """
     def __init__(self):
         self.turnstile = Semaphore(1)
         self.monitors = LightSwitch()
@@ -58,65 +83,81 @@ class PowerPlant:
 
 
 def monitor(monitor_id, system_control, access_data):
-    # monitor nemôže pracovať, kým nie je aspoň 1 platný údaj v úložisku
+    """
+    Function that represent the monitor that read and actualize data on monitors
+
+    :param monitor_id: int - Identification number of monitor function that is called by the 'Thread'
+    :param system_control: Object - 'PowerPlant' class that encapsulates the synchronization objects
+    :param access_data:  Object - 'Semaphore' object that simulates the shared data for monitors to show
+    """
+
+    # Wait for all 3 types of sensors to provide data
     system_control.validDataP.wait()
     system_control.validDataT.wait()
     system_control.validDataH.wait()
 
+    # Read and show the data
     while True:
-        # monitor má prestávku 500 ms od zapnutia alebo poslednej aktualizácie
-        # zablokujeme turniket, aby sme vyhodili čidlá z KO
+        read_time = randint(40, 50)
+        sleep(read_time / 1000)  # Simulates the time needed to access data
+
         system_control.turnstile.wait()
-        # získame prístup k úložisku
+
         monitors_read = system_control.monitors.lock(access_data)
         system_control.turnstile.signal()
-        # prístup k údajom simulovaný nasledovným výpisom
-        read_time = randint(40, 50)
-        sleep(read_time / 1000)
-        print(f'monitor {monitor_id:02d}: {monitors_read:02d}, read time: {read_time:02d}')
 
-        # aktualizovali sme údaje, odchádzame z úložiska
+        print(f'monitor {monitor_id:02d}: monitors read:{monitors_read:02d}, read time: {read_time:02d}')
+
         system_control.monitors.unlock(access_data)
 
 
 def sensor(sensor_id, system_control, access_data, sensor_type):
+    """
+
+    Function that represent the sensors that collects data
+
+    :param sensor_id: int - Identifier of current sensor called by 'Thread' object
+    :param system_control: Object - 'PowerPlant' object for synchronization
+    :param access_data: Object - 'Semaphore' object that simulates the shared data for monitors to show
+    :param sensor_type: Enum - Type of sensor that is called by 'Thread' object
+    """
     while True:
 
-        # čidlá prechádzajú cez turniket, pokým ho nezamkne monitor
         system_control.turnstile.wait()
         system_control.turnstile.signal()
-        sleep(randint(50, 60) / 1000)
-        # získame prístup k úložisku
-        sensors_read = system_control.sensors.lock(access_data)
-        # prístup k údajom simulovaný čakaním v intervale 10 až 15 ms
-        # podľa špecifikácie zadania informujeme o čidle a zápise, ktorý ide vykonať
+        sleep(randint(50, 60) / 1000)   # Collect data every 60 seconds
 
+        sensors_read = system_control.sensors.lock(access_data)
+
+        # Different sensor types have different wait times
         if sensor_type is SensorType.H:
             write_time = randint(20, 25)
         else:
             write_time = randint(10, 20)
-        sleep(write_time / 1000)
+
         print(f'sensor {sensor_id:02d} of type {sensor_type.name}:  {sensors_read:02d}, {write_time} ms')
+        sleep(write_time / 1000)  # Simulates the time needed to store data
 
-        # po zapísaní údajov signalizujeme, že údaj je platný
-
+        # For monitor function, that waits for all three sensor to collect data
         if sensor_type is SensorType.P:
             system_control.validDataP.signal()
         elif sensor_type is SensorType.T:
             system_control.validDataT.signal()
         else:
             system_control.validDataH.signal()
-        # a odchádzame z úložiska preč
+
         system_control.sensors.unlock(access_data)
 
 
 def main():
+    # init
     accessData = Semaphore(1)
     system = PowerPlant()
     types = [SensorType.H, SensorType.P, SensorType.T]
     monitors = [Thread(monitor, monitor_id, system, accessData) for monitor_id in range(8)]
     sensors = [Thread(sensor, sensor_id, system, accessData, types[sensor_id]) for sensor_id in range(3)]
 
+    # this line is redundant, is here only for good practice to safely let threads cease to exist
     [t.join() for t in monitors + sensors]
 
 
