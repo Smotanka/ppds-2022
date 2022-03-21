@@ -19,8 +19,8 @@ from random import randint
 
 # Constants
 N = 10  # Savages
-M = 6   # Meals
-C = 4   # Cooks
+M = 6  # Meals
+C = 4  # Cooks
 
 
 class SimpleBarrier(object):
@@ -73,6 +73,7 @@ class Shared(object):
     """
     Shared object whose purpose is to sync all the other processes
     """
+
     def __init__(self, m):
         """
         Initialize 'Shared' object
@@ -117,7 +118,7 @@ def savage(i, shared):
         shared.bar_savage_2.wait(savage_id=i)
         shared.mutex.lock()
         if shared.servings == 0:
-            print(f"Savage {i}: pot is empty !\n")
+            print(f"Savage {i}: pot is empty, waking cooks!\n")
             shared.empty_pot.signal(C)
             shared.full_pot.wait()
         print(f"Savage {i}: taking from pot")
@@ -137,8 +138,7 @@ def cook(i, shared):
     shared.empty_pot.wait()
     while True:
         shared.bar_cook_1.wait()
-        shared.bar_cook_2.wait(cook_id=i)
-        # shared.empty_pot.wait()
+        shared.bar_cook_2.wait()
         shared.mutexC.lock()
         shared.cooks += 1
         if shared.servings == M:
@@ -146,21 +146,10 @@ def cook(i, shared):
             print(f"Cook {i}: pot is full\n")
             shared.full_pot.signal()
             shared.empty_pot.wait()
-
         sleep(randint(50, 200) / 100)
         shared.servings += 1
         print(f"Cook {i}: cooking --> dish {shared.servings}")
         shared.mutexC.unlock()
-
-        # shared.cooks += 1
-        # print(f"Cook {i}: I am awake, now we are {shared.cooks}")
-        # sleep(randint(50, 200) / 100)
-        # if shared.cooks == C:
-        #     print(f"Cooks: We are cooking")
-        #     shared.servings += M
-        #     print(f"Cook {i}: pot is full\n")
-        #     shared.full_pot.signal()
-        #     shared.cooks = 0
 
 
 def main():
