@@ -56,13 +56,13 @@ def foo(str1, str2):
     str1 = str1 + str2
     print(str1)
     yield str1
-    str1 = str1 + bar(str1)
+    str1 = str1 + next(bar(str1))
     print(str1)
     yield str1
 
 
 def bar(str1):
-    return str1 + 'cd'
+    yield str1 + 'cd'
 
 
 def main():
