@@ -68,7 +68,7 @@ async def main():
         r = requests.get(url=async_server)
         r.close()
     end = time.time()
-    save_time('calls_sync_async_50.txt', "{:.4f}".format(end - start))
+
     print(f'50 sync calls --> async server {end - start} ')
 
     start = time.time()
