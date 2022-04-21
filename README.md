@@ -18,9 +18,12 @@ In classical synchronous [app](appSync.py) we used a `for` loop to make https ca
 
 ---
 ![fig1](Figure_1.png)
+
+
 On this figure, where y-axis is representing time in seconds an x-axis is representing number of images(request) called,
 we can see that only at 30 request made, there is noticeable difference (even that is quite small). Times elapsed are average calculated on 100 calls for `n` images. 
 So for 15 images there are 1500 requests. Data might be distorting because internet bandwidth and/or speed takes huge role in corresponding times.
+
 ---
 We took this even further and made calls to our servers in synchronous/asynchronous manner:
 ```
