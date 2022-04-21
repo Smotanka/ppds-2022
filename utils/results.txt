@@ -1,0 +1,27 @@
+------ 1 ------
+async_elapsed.txt: 0.326291
+sync_elapsed.txt: 0.34049
+
+------ 5 ------
+async_elapsed.txt: 1.7342933333333332
+sync_elapsed.txt: 1.6682600000000003
+
+------ 10 ------
+async_elapsed.txt: 3.201784000000001
+sync_elapsed.txt: 3.2457579999999995
+
+------ 15 ------
+async_elapsed.txt: 4.741880000000002
+sync_elapsed.txt: 4.726379
+
+------ 20 ------
+async_elapsed.txt: 6.51452
+sync_elapsed.txt: 6.5678849999999995
+
+------ 25 ------
+async_elapsed.txt: 7.4328555343222
+sync_elapsed.txt: 7.49212131244111
+
+------ 30 ------
+async_elapsed.txt: 9.050233111112
+sync_elapsed.txt: 9.212344
