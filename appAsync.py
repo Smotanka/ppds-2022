@@ -26,6 +26,7 @@ class MyAsyncServer(BaseHTTPRequestHandler):
         """
         Methods that returns content when user sends GET request to a server, in our case
         html page with random images (number of images is parameter passed to 'get_images' function)
+        for more see: https://pythonbasics.org/webserver/
         :return: None
         """
         self.send_response(200)
